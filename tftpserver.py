@@ -47,6 +47,14 @@ def main():
     #   functions as needed                            #
     ####################################################
 
+    socket = socket_setup()
+    file = open('file_name','r')
+    blocks = dict
+    for x in range(1, get_file_block_count(file) + 1):
+        blocks[x] = get_file_block(file, x)
+
+    block_number = 1
+    send_response(socket, -1, blocks, block_number)
 
 
 
@@ -55,6 +63,33 @@ def main():
     ####################################################
 
     client_socket.close()
+
+def send_response(udp_socket, error_code, blocks, block_number):
+    """
+    Prepare and sends a response message to the client
+    :param udp_socket: the socket to be sent to
+    :param error_code: the error code if there is one
+    :file the file to being requested
+    :return: if the message was sent
+    """
+    message = b''
+    if error_code != -1:
+        message += create_op_code(b'\x03')
+        message += create_block_number(block_number)
+        message += blocks.get(block_number)
+    else:
+        message += generate_error()
+    return udp_socket.sendTo(message)
+def create_op_code(code):
+    return b'\x00'+code
+
+def create_block_number(number):
+    return number.to_bytes('2','big')
+def create_data(data):
+
+def generate_error(error_code):
+
+def parse_ack(bytes):
 
 
 def get_file_block_count(filename):
