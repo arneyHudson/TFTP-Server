@@ -1,11 +1,11 @@
 """
 - NOTE: REPLACE 'N' Below with your section, year, and lab number
-- CS2911 - 0NN
-- Fall 202N
-- Lab N
+- CS2911 - 011
+- Fall 2022
+- Lab 6 - TFTP Server
 - Names:
-  - 
-  - 
+  - Hudson Arney
+  - Josh Sopa
 
 A Trivial File Transfer Protocol Server
 
@@ -48,7 +48,7 @@ def main():
     ####################################################
 
     socket = socket_setup()
-    file = open('file_name','r')
+    file = open('file_name', 'r')
     blocks = dict
     for x in range(1, get_file_block_count(file) + 1):
         blocks[x] = get_file_block(file, x)
@@ -56,13 +56,12 @@ def main():
     block_number = 1
     send_response(socket, -1, blocks, block_number)
 
-
-
     ####################################################
     # Your code ends here                              #
     ####################################################
 
     client_socket.close()
+
 
 def send_response(udp_socket, error_code, blocks, block_number):
     """
@@ -80,30 +79,35 @@ def send_response(udp_socket, error_code, blocks, block_number):
     else:
         message += generate_error()
     return udp_socket.sendTo(message)
+
+
 def create_op_code(code):
-    return b'\x00'+code
+    return b'\x00' + code
+
 
 def create_block_number(number):
-    return number.to_bytes('2','big')
-def create_data(data):
+    return number.to_bytes('2', 'big')
+
+
+# def create_data(data):
 
 def generate_error(error_code):
     message = b'\x00\x05'
-    message += error_code.to_bytes('2','big')
-    errors = { '0': b'Not defined, see error message (if any).',
-           '1': b'File not found.',
-           '2': b'Access violation.',
-           '3': b'Disk full or allocation exceeded.',
-           '4': b'Illegal TFTP operation.',
-           '5': b'Unknown transfer ID.',
-           '6': b'File already exists.',
-           '7': b'No such user.'}
+    message += error_code.to_bytes('2', 'big')
+    errors = {'0': b'Not defined, see error message (if any).',
+              '1': b'File not found.',
+              '2': b'Access violation.',
+              '3': b'Disk full or allocation exceeded.',
+              '4': b'Illegal TFTP operation.',
+              '5': b'Unknown transfer ID.',
+              '6': b'File already exists.',
+              '7': b'No such user.'}
     message += errors.get(error_code)
     message += b'\x00'
     return message
 
 
-def parse_ack(bytes):
+# def parse_ack(bytes):
 
 def get_file_block_count(filename):
     """
@@ -129,7 +133,7 @@ def get_file_block(filename, block_number):
     """
     # Open the file for reading
     file = open(filename, 'rb')
-    block_byte_offset = (block_number-1) * TFTP_BLOCK_SIZE
+    block_byte_offset = (block_number - 1) * TFTP_BLOCK_SIZE
     file.seek(block_byte_offset)
 
     # Read and return the block
@@ -155,7 +159,7 @@ def put_file_block(filename, block_data, block_number):
 
     # Open the file for updating
     file = open(filename, 'r+b')
-    block_byte_offset = (block_number-1) * TFTP_BLOCK_SIZE
+    block_byte_offset = (block_number - 1) * TFTP_BLOCK_SIZE
     file.seek(block_byte_offset)
 
     # Write and close the file
@@ -176,6 +180,76 @@ def socket_setup():
 ####################################################
 # Write additional helper functions starting here  #
 ####################################################
+
+def parse_request(udp_socket, file_path):
+    """
+
+    :param file_path:
+    :param udp_socket:
+    :return:
+    """
+    if validate_file(file_path):
+        request = get_op_code(udp_socket)
+        request += get_type(udp_socket)
+        request += get_source_file(udp_socket)
+        return request
+    else:
+        print("Can't Parse Request")
+
+
+def get_op_code(message):
+    op_code = b''
+    for x in range(4):
+        op_code += message.recvfrom(MAX_UDP_PACKET_SIZE)
+    print(int(op_code.decode()))
+    return op_code
+
+
+def get_type(message):
+    """
+    :param message:
+    :return:
+    """
+    transfer_type = b''
+    data = message.recvfrom(MAX_UDP_PACKET_SIZE)
+    while data != '0':
+        transfer_type += data
+        data = message.recvfrom(MAX_UDP_PACKET_SIZE)
+
+    print(transfer_type.decode())
+    return transfer_type
+
+
+def get_source_file(message):
+    """
+
+    :param message:
+    :return:
+    """
+    source_file = b''
+    data = message.recvfrom(MAX_UDP_PACKET_SIZE)
+    while data != '0':
+        source_file += data
+        data = message.recvfrom(MAX_UDP_PACKET_SIZE)
+    print(source_file.decode())
+    return source_file
+
+
+def validate_file(file_path):
+    """
+
+    :param file_path:
+    :return:
+    """
+    valid_file = False
+    try:
+        if get_file_block_count(file_path) > 0:
+            valid_file = True
+            print("File is valid")
+    except valid_file:
+        print("File is not valid")
+    finally:
+        return valid_file
 
 
 main()
