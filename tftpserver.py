@@ -88,14 +88,27 @@ def create_block_number(number):
 def create_data(data):
 
 def generate_error(error_code):
+    message = b'\x00\x05'
+    message += error_code.to_bytes('2','big')
+    errors = { '0': b'Not defined, see error message (if any).',
+           '1': b'File not found.',
+           '2': b'Access violation.',
+           '3': b'Disk full or allocation exceeded.',
+           '4': b'Illegal TFTP operation.',
+           '5': b'Unknown transfer ID.',
+           '6': b'File already exists.',
+           '7': b'No such user.'}
+    message += errors.get(error_code)
+    message += b'\x00'
+    return message
+
 
 def parse_ack(bytes):
-
 
 def get_file_block_count(filename):
     """
     Determines the number of TFTP blocks for the given file
-    :param filename: THe name of the file
+    :param filename: THe name b,of the file
     :return: The number of TFTP blocks for the file or -1 if the file does not exist
     """
     try:
