@@ -212,7 +212,7 @@ def get_type(message):
     """
     transfer_type = b''
     data = message.recvfrom(MAX_UDP_PACKET_SIZE)
-    while data != '0':
+    while data != b'\x00':
         transfer_type += data
         data = message.recvfrom(MAX_UDP_PACKET_SIZE)
 
@@ -228,7 +228,7 @@ def get_source_file(message):
     """
     source_file = b''
     data = message.recvfrom(MAX_UDP_PACKET_SIZE)
-    while data != '0':
+    while data != b'\x00':
         source_file += data
         data = message.recvfrom(MAX_UDP_PACKET_SIZE)
     print(source_file.decode())
